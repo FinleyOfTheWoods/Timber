@@ -10,15 +10,18 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import uk.co.finleyofthewoods.timber.config.TimberConfig;
+import uk.co.finleyofthewoods.timber.utils.LedgerLog;
 
 import java.util.Iterator;
 
-@Slf4j
+@Slf4j(topic = "TimberTask")
 public class TimberTask {
     private final World world;
     private final PlayerEntity player;
     private final ItemStack tool;
     private final Iterator<BlockPos> blockIterator;
+    private final TimberConfig config = TimberConfig.getInstance();
 
     public TimberTask(World world, PlayerEntity player, ItemStack tool, Iterator<BlockPos> blockIterator) {
         this.world = world;
@@ -28,13 +31,14 @@ public class TimberTask {
     }
 
     public boolean isComplete() {
-        return !blockIterator.hasNext();
+        boolean isComplete = blockIterator.hasNext();
+        log.debug("Task is {} complete", isComplete ? "" : "not");
+        return isComplete;
     }
 
     public void process() {
         int processedCount = 0;
-        int blocksPerTick = 10;
-        while(blockIterator.hasNext() && processedCount < blocksPerTick) {
+        while(blockIterator.hasNext() && processedCount < config.getBlocksPerTick()) {
             BlockPos pos = blockIterator.next();
             processedCount++;
             BlockState state = world.getBlockState(pos);
@@ -54,9 +58,10 @@ public class TimberTask {
                 Block.dropStacks(state, world, pos, blockEntity, player, tool);
                 if (world.breakBlock(pos, false)) {
                     log.debug("Block at {} successfully chopped", pos);
+                    LedgerLog.insert(world, player, pos, state, null, blockEntity);
                 }
                 if (!player.isCreative()) {
-                    int damage = (int) Math.max(1, 1 * 0.2);
+                    int damage = (int) Math.max(1, 1 * config.getDurabilityFactor());
                     tool.damage(damage, player, EquipmentSlot.MAINHAND);
                     log.debug("Tool {} damaged by {} damage", tool.getItemName(), damage);
                 } else {

@@ -16,6 +16,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import uk.co.finleyofthewoods.timber.config.TimberConfig;
 import uk.co.finleyofthewoods.timber.enchantment.TimberEnchantment;
 import uk.co.finleyofthewoods.timber.tasks.TimberTask;
 
@@ -24,20 +25,17 @@ import java.util.*;
 @Slf4j(topic = "TimberEvent")
 public class TimberEvent implements Before{
     private static final Set<TimberTask> TASKS = new HashSet<>();
+    private static final TimberConfig config = TimberConfig.getInstance();
     @Override
     public boolean beforeBlockBreak(
             @NonNull World world, @NonNull PlayerEntity player, @NonNull BlockPos pos,
             @NonNull BlockState state, @Nullable BlockEntity blockEntity) {
         if (world.isClient()) {
             log.debug("Client world detected, cancelling event");
-            player.sendMessage(Text.literal("§cClient world detected, cancelling event"), true);
-
             return true;
         }
         if (!state.isIn(BlockTags.AXE_MINEABLE)) {
             log.debug("Block not mineable by an axe, cancelling event");
-            player.sendMessage(Text.literal("§cBlock not mineable by an axe, cancelling event"), true);
-
             return true;
         }
         Map<Integer, Integer> maxBlocks = Map.ofEntries(
@@ -51,12 +49,11 @@ public class TimberEvent implements Before{
         int maxBreaks = maxBlocks.get(enchantmentLevel);
         if (!heldItemStack.isIn(ItemTags.AXES) || heldItemStack.isEmpty() || enchantmentLevel == 0) {
             log.debug("Player not holding an enchanted axe, cancelling event");
-            player.sendMessage(Text.literal("§cPlayer not holding an enchanted axe, cancelling event."), true);
             return true;
         }
         log.debug("TimberEvent fired");
         log.debug("Enchantment level: {}", enchantmentLevel);
-        double damage = Math.max(1, 1 * 0.2) * maxBreaks;
+        double damage = Math.max(1, 1 * config.getDurabilityFactor()) * maxBreaks;
         if ((heldItemStack.getMaxDamage() - heldItemStack.getDamage()) < damage) {
             log.debug("Player's axe is too damaged, cancelling event");
             player.sendMessage(Text.literal("§cNot enough durability to chop."), true);
