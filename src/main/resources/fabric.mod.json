@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "timber",
+  "version": "${version}",
+  "name": "Timber",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "MPL-2.0",
+  "icon": "assets/timber/icon.png",
+  "environment": "server",
+  "entrypoints": {
+    "main": [
+      "uk.co.finleyofthewoods.timber.Timber"
+    ]
+  },
+  "mixins": [
+    "timber.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": ">=${minecraft_version}"
+  }
+}
